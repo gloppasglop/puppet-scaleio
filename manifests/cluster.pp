@@ -13,6 +13,7 @@ define scaleio::cluster (
   $restricted_sdc_mode          = undef,      # 'enabled'|'disabled' - Restricted SDC mode
   $license_file_path            = undef,      # string - Path to license file
   $remote_readonly_limit_state  = undef,      # 'enabled'|'disabled' - Remote readonly limit state
+  $performance_profile          = undef,      # performance profile for SDC: default or high_performance
   )
 {
   if $cluster_mode {
@@ -75,6 +76,15 @@ define scaleio::cluster (
       action => 'set',
       entity => 'remote_readonly_limit_state',
       value  => $remote_readonly_limit_state}
+  }
+  if $performance_profile {
+    $mdm_opts = $::mdm_ips ? {
+      undef   => '',
+      default => "--mdm_ip ${::mdm_ips}"}
+    exec { "Apply high_performance profile for all":
+      command   => "scli ${mdm_opts} --set_performance_parameters --all_sdc --all_sds --apply_to_mdm --profile ${performance_profile}",
+      path      => '/bin:/usr/bin',
+    }
   }
 
   # TODO:
