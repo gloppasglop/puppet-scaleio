@@ -6,8 +6,8 @@ class scaleio::mdm_server (
   $master_mdm_name          = undef,      # string - Name of the master node
   $mdm_ips                  = undef,      # string - MDM IPs
   $mdm_management_ips       = undef,      # string - MDM management IPs
-  $additional_packages  = $scaleio::params::mdm_additional_packages,
-  $package_name         = $scaleio::params::mdm_package_name,
+  $additional_packages  = $::scaleio::params::mdm_additional_packages,
+  $package_name         = $::scaleio::params::mdm_package_name,
   ) inherits scaleio::params
 {
   if $ensure == 'absent' {

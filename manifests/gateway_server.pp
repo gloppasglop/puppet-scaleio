@@ -6,8 +6,8 @@ class scaleio::gateway_server (
   $password     = undef,      # string - Password for Gateway
   $port         = 4443,       # int - Port for gateway
   $im_port      = 8081,       # int - Port for IM
-  additional_packages = $scaleio::params::gateway_additional_packages,
-  $package_name = $scaleio__params::gateway_package_name,
+  additional_packages = $::scaleio::params::gateway_additional_packages,
+  $package_name = $::scaleio__params::gateway_package_name,
   ) inherits scaleio::params
 {
   if $ensure == 'absent'
