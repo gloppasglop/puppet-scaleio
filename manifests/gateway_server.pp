@@ -6,13 +6,14 @@ class scaleio::gateway_server (
   $password     = undef,      # string - Password for Gateway
   $port         = 4443,       # int - Port for gateway
   $im_port      = 8081,       # int - Port for IM
-  )
+  additional_packages = $scaleio::params::gateway_additional_packages,
+  $package_name = $scaleio__params::gateway_package_name,
+  ) inherits scaleio::params
 {
   if $ensure == 'absent'
   {
-    package { 'emc-scaleio-gateway':
+    package { $package_name:
       ensure    => 'purged',
-      provider  => dpkg,
     }
   }
   else {
@@ -22,24 +23,15 @@ class scaleio::gateway_server (
       proto  => tcp,
       action => accept,
     }
-    package { ['numactl', 'libaio1']:
+    package { $additional_packages:
         ensure  => installed,
     } ->
-    # Below are a java 1.8 installation steps which shouldn't be required for newer Ubuntu versions
-    exec { 'add java8 repo':
-      unless  => 'apt-cache search oracle-java8-installer | grep oracle-java8-installer || grep "webupd8team/java" /etc/apt/sources.list /etc/apt/sources.list.d/*',
-      command => 'add-apt-repository ppa:webupd8team/java && apt-get update',
+    java::oracle { 'jdk8' :
+        ensure  => 'present',
+        version => '8',
+        java_se => 'jdk',
     } ->
-    exec { 'java license accepting step 1':
-      command => 'echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections',
-    } ->
-    exec { 'java license accepting step 2':
-      command => 'echo debconf shared/accepted-oracle-license-v1-1 seen true | debconf-set-selections',
-    } ->
-    package { 'oracle-java8-installer':
-        ensure  => installed,
-    } ->
-    package { 'emc-scaleio-gateway':
+    package { $package_name:
         ensure  => installed,
     } ->
     service { 'scaleio-gateway':
@@ -52,21 +44,21 @@ class scaleio::gateway_server (
       line    => 'security.bypass_certificate_check=true',
       path    => '/opt/emc/scaleio/gateway/webapps/ROOT/WEB-INF/classes/gatewayUser.properties',
       match   => '^security.bypass_certificate_check=',
-      require => Package['emc-scaleio-gateway'],
+      require => Package[$package_name],
     } ->
     file_line { 'Set gateway port':
       ensure  => present,
       line    => "ssl.port=${port}",
       path    => '/opt/emc/scaleio/gateway/conf/catalina.properties',
       match   => '^ssl.port=',
-      require => Package['emc-scaleio-gateway'],
+      require => Package[$package_name],
     } ->
     file_line { 'Set IM web-app port':
       ensure  => present,
       line    => "http.port=${im_port}",
       path    => '/opt/emc/scaleio/gateway/conf/catalina.properties',
       match   => '^http.port=',
-      require => Package['emc-scaleio-gateway'],
+      require => Package[$package_name],
     }
     if $mdm_ips {
       $mdm_ips_str = join(split($mdm_ips,','), ';')
@@ -75,7 +67,7 @@ class scaleio::gateway_server (
         line    => "mdm.ip.addresses=${mdm_ips_str}",
         path    => '/opt/emc/scaleio/gateway/webapps/ROOT/WEB-INF/classes/gatewayUser.properties',
         match   => '^mdm.ip.addresses=.*',
-        require => Package['emc-scaleio-gateway'],
+        require => Package[$package_name],
       }
     }
     if $password {

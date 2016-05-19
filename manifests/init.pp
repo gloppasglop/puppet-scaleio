@@ -5,5 +5,4 @@
 # This class isn't used
 
 class scaleio {
-
 }
