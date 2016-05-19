@@ -10,10 +10,10 @@ class scaleio::mdm_server (
 {
   case $::osfamily {
     'RedHat': {
-      $packagelist = ['numactl', 'libaio', 'mutt', 'python', 'python-paramiko'],
+      $packagelist = ['numactl', 'libaio', 'mutt', 'python', 'python-paramiko']
     }
     default: {
-      $packagelist = ['numactl', 'libaio1', 'mutt', 'python', 'python-paramiko'],
+      $packagelist = ['numactl', 'libaio1', 'mutt', 'python', 'python-paramiko']
     }
   }
   if $ensure == 'absent' {
