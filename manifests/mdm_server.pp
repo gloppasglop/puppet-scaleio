@@ -27,7 +27,7 @@ class scaleio::mdm_server (
       proto   => tcp,
       action  => accept,
     }
-    package { $packaglist:
+    package { $packagelist:
       ensure => installed,
     } ->
     package { ['emc-scaleio-mdm']:
