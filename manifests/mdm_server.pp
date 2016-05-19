@@ -8,6 +8,14 @@ class scaleio::mdm_server (
   $mdm_management_ips       = undef,      # string - MDM management IPs
   )
 {
+  case $::osfamily {
+    'RedHat': {
+      $packagelist = ['numactl', 'libaio', 'mutt', 'python', 'python-paramiko'],
+    }
+    default: {
+      $packagelist = ['numactl', 'libaio1', 'mutt', 'python', 'python-paramiko'],
+    }
+  }
   if $ensure == 'absent' {
     package { ['emc-scaleio-mdm']:
       ensure => 'absent',
@@ -19,7 +27,7 @@ class scaleio::mdm_server (
       proto   => tcp,
       action  => accept,
     }
-    package { ['numactl', 'libaio1', 'mutt', 'python', 'python-paramiko']:
+    package { $packaglist:
       ensure => installed,
     } ->
     package { ['emc-scaleio-mdm']:
