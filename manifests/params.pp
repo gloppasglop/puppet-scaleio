@@ -1,4 +1,4 @@
-class mdm::params {
+class scaleio::params {
   case $::osfamily {
     'RedHat': {
       $mdm_additional_packages = ['numactl', 'libaio', 'mutt', 'python', 'python-paramiko'] 
