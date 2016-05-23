@@ -2,8 +2,9 @@
 
 class scaleio::sdc_server (
   $ensure  = 'present',                               # present|absent - Install or remove SDC service
-  $mdm_ip  = undef,                                   # string - List of MDM IPs
+  $mdm_ips  = undef,                                   # string - List of MDM IPs
   $ftp     = 'ftp://QNzgdxXix:Aw3wFAwAq3@ftp.emc.com' # string - FTP with user and password
+  $package_name = $::scaleio:params::sdc_package_name,
   )
 {
   $ftp_split = split($ftp, '@')
@@ -25,10 +26,7 @@ class scaleio::sdc_server (
   }
   $scini_sync_keys = keys($scini_sync_conf)
 
-  package { ['numactl', 'libaio1']:
-    ensure => installed,
-  } ->
-  package { ['emc-scaleio-sdc']:
+  package { $package_name:
     ensure => $ensure,
   }
   if $ensure == 'present' {
@@ -38,40 +36,40 @@ class scaleio::sdc_server (
       mode   => '0644',
       owner  => 'root',
       group  => 'root',
-      require => Package['emc-scaleio-sdc']
+      require => Package[$package_name]
     } ->
     exec { 'scaleio repo public key':
       command => "ssh-keyscan ${ftp_host} | grep ssh-rsa > /bin/emc/scaleio/scini_sync/scini_repo_key.pub",
       path    => ['/bin/', '/usr/bin', '/sbin'],
-      require => Package['emc-scaleio-sdc']
+      require => Package[$package_name]
     } ->
     scini_sync { $scini_sync_keys:
       config => $scini_sync_conf,
-      require => Package['emc-scaleio-sdc']
+      require => Package[$package_name]
     } ->
     exec { 'scini sync and update':
       command => 'update_driver_cache.sh && verify_driver.sh',
       unless  => 'verify_driver.sh',
       path    => ['/bin/emc/scaleio/scini_sync/', '/bin/', '/usr/bin', '/sbin'],
-      require => Package['emc-scaleio-sdc']
+      require => Package[$package_name]
     } ~>
     service { 'scini':
       ensure => running,
-      require => Package['emc-scaleio-sdc']
+      require => Package[$package_name]
     }
   }
-  if $mdm_ip {
-    $ip_array = split($mdm_ip, ',')
+  if $mdm_ips {
+    $ip_array = split($mdm_ips, ',')
 
     if $ensure == 'present' {
         add_ip { $ip_array: }
     }
     file_line { 'Set MDM IP addresses in drv_cfg.txt':
       ensure  => present,
-      line    => "mdm ${mdm_ip}",
+      line    => "mdm ${mdm_ips}",
       path    => '/bin/emc/scaleio/drv_cfg.txt',
       match   => '^mdm .*',
-      require => Package['emc-scaleio-sdc'],
+      require => Package[$package_name],
     }
   }
 
@@ -79,7 +77,7 @@ class scaleio::sdc_server (
     exec { "add ip ${title}":
       command  => "drv_cfg --add_mdm --ip ${title}",
       path     => '/opt/emc/scaleio/sdc/bin:/bin',
-      require  => Package['emc-scaleio-sdc'],
+      require  => Package[$package_name],
       unless   => "drv_cfg --query_mdms | grep ${title}"
     }
   }
