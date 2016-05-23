@@ -2,7 +2,6 @@
 # requires FACTER ::mdm_ips to be set if not run from master MDM
 
 define scaleio::sds (
-  $name,                                        # string - SDS name
   $ensure               = 'present',            # present|absent - Add or remove SDS to cluster
   $ensure_properties    = 'present',            # present|absent - Add or remove SDS properties
   $protection_domain    = undef,                # string - Protection domain to specify when adding to cluster

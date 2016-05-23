@@ -2,7 +2,6 @@
 # requires FACTER ::mdm_ips to be set if not run from master MDM
 
 define scaleio::storage_pool (
-  $name,                                        # string - Storage pool name
   $ensure                         = 'present',  # present|absent - Add or remove storage pool
   $protection_domain              = undef,      # string - Protection domain name
   $checksum_mode                  = undef,      # 'enable'|'disable'
