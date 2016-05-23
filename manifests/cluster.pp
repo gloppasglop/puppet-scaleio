@@ -19,7 +19,7 @@ define scaleio::cluster (
   if $cluster_mode {
     # Cluster mode changed
     $action = $ensure ? {'absent' => 'remove', default => 'add'}
-    cmd {"switch cluster mode ${ensure}":
+    scaleio::cmd {"switch cluster mode ${ensure}":
       action        => 'switch_cluster_mode',
       ref           => 'cluster_mode',
       value         => "${cluster_mode}_node",
@@ -44,13 +44,13 @@ define scaleio::cluster (
       undef       => '',
       default     => "--remove_tb_name ${tb_names_to_replace}"
     }
-    cmd {"replace cluster nodes ${add_slave_opts} ${remove_slave_opts} ${add_tb_opts} ${remove_tb_opts}":
+    scaleio::cmd {"replace cluster nodes ${add_slave_opts} ${remove_slave_opts} ${add_tb_opts} ${remove_tb_opts}":
       action        => 'replace_cluster_mdm',
       extra_opts    => "${add_slave_opts} ${remove_slave_opts} ${add_tb_opts} ${remove_tb_opts} --allow_leave_failed --i_am_sure",
     }
   }
   if $new_password {
-    cmd {'set password':
+    scaleio::cmd {'set password':
       action              => 'set_password',
       ref                 => 'new_password',
       value               => $new_password,
@@ -60,19 +60,19 @@ define scaleio::cluster (
     }
   }
   if $restricted_sdc_mode {
-    cmd {'set restricted sdc mode':
+    scaleio::cmd {'set restricted sdc mode':
       action  => 'set_restricted_sdc_mode',
       ref     => 'restricted_sdc_mode',
       value   => $restricted_sdc_mode}
   }
   if $license_file_path {
-    cmd {'set license':
+    scaleio::cmd {'set license':
       action => 'set_license',
       ref    => 'license_file',
       value  => $license_file_path}
   }
   if $remote_readonly_limit_state {
-    cmd {'set remote readonly limit state':
+    scaleio::cmd {'set remote readonly limit state':
       action => 'set',
       entity => 'remote_readonly_limit_state',
       value  => $remote_readonly_limit_state}

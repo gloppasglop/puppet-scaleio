@@ -8,30 +8,30 @@ define scaleio::protection_domain (
   $storage_pools      = undef,      # [string] - Array of storage pools
   )
 {
-  cmd {"Protection domain ${title} ${ensure}":
+  scaleio::cmd {"Protection domain ${title} ${ensure}":
     action => $ensure,
     entity => 'protection_domain',
     value  => $name,}
   if $fault_sets {
     $fs_resources = suffix($fault_sets, ',1')
-    cmd {$fs_resources:
+    scaleio::cmd {$fs_resources:
       action          => $ensure_properties,
       entity          => 'fault_set',
       value_in_title  => true,
       scope_entity    => 'protection_domain',
       scope_value     => $name,
-      require         => Cmd["Protection domain ${title} ${ensure}"],
+      require         => Scaleio::Cmd["Protection domain ${title} ${ensure}"],
     }
   }
   if $storage_pools {
     $sp_resources = suffix($storage_pools, ',2')
-    cmd {$sp_resources:
+    scaleio::cmd {$sp_resources:
       action          => $ensure_properties,
       entity          => 'storage_pool',
       value_in_title  => true,
       scope_entity    => 'protection_domain',
       scope_value     => $name,
-      require         => Cmd["Protection domain ${title} ${ensure}"],
+      require         => Scaleio::Cmd["Protection domain ${title} ${ensure}"],
     }
   }
 

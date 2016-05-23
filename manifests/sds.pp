@@ -16,7 +16,7 @@ define scaleio::sds (
 {
   $sds_resource_title = "SDS ${title} ${ensure}"
   if $ensure == 'absent' {
-    cmd {$sds_resource_title:
+    scaleio::cmd {$sds_resource_title:
       action => $ensure,
       entity => 'sds',
       value  => $name,
@@ -31,7 +31,7 @@ define scaleio::sds (
     $device_path_opts = $device_paths ? {undef => '', default => "--device_path ${device_paths}" }
     $fault_set_opts = $fault_set ? {undef => '', default => "--fault_set_name ${fault_set}" }
     $port_opts = $port ? {undef => '', default => "--sds_port ${port}" }
-    cmd {$sds_resource_title:
+    scaleio::cmd {$sds_resource_title:
       action       => $ensure,
       entity       => 'sds',
       value        => $name,
@@ -44,20 +44,20 @@ define scaleio::sds (
 
       if $ensure_properties == 'present' {
         $ip_resources = suffix($ip_array, ",${name}1")
-        cmd {$ip_resources:
+        scaleio::cmd {$ip_resources:
           action         => 'add_sds_ip',
           ref            => 'new_sds_ip',
           value_in_title => true,
           scope_entity   => 'sds',
           scope_value    => $name,
           unless_query   => 'query_sds --sds_ip',
-          require        => Cmd[$sds_resource_title] }
+          require        => Scaleio::Cmd[$sds_resource_title] }
 
         if $ip_roles {
           $ips_with_roles = hash(flatten(zip($ip_array, split($ip_roles, ','))))
           $ip_role_resources = suffix($ip_array, ",${name}2")
           $role_existence_string = {'all'=>'All', 'sdc_only'=>'SDC Only', 'sds_only'=>'SDS Only'}
-          cmd {$ip_role_resources:
+          scaleio::cmd {$ip_role_resources:
             action                => 'modify_sds_ip_role',
             ref                   => 'sds_ip_to_modify',
             value_in_title        => true,
@@ -68,18 +68,18 @@ define scaleio::sds (
             unless_query          => "query_sds --sds_name ${name} | grep",
             unless_query_ext      => ' | grep',
             unless_query_ext_hash => $role_existence_string,
-            require               => Cmd[$sds_resource_title] }
+            require               => Scaleio::Cmd[$sds_resource_title] }
         }
       }
       elsif $ensure_properties == 'absent' {
         $ip_del_resources = suffix($ip_array, ",${name}3")
-        cmd {$ip_del_resources:
+        scaleio::cmd {$ip_del_resources:
           action          => 'remove_sds_ip',
           ref             => 'sds_ip_to_remove',
           value_in_title  => true,
           scope_entity    => 'sds',
           scope_value     => $name,
-          require         => Cmd[$sds_resource_title] }
+          require         => Scaleio::Cmd[$sds_resource_title] }
       }
     }
 
@@ -89,7 +89,7 @@ define scaleio::sds (
       if $ensure_properties == 'present' {
         $device_resources = suffix($device_array, ",${name}4")
         $devices_with_pools = hash(flatten(zip($device_array, split($storage_pools, ','))))
-        cmd {$device_resources:
+        scaleio::cmd {$device_resources:
           action          => 'add_sds_device',
           ref             => 'device_path',
           value_in_title  => true,
@@ -98,17 +98,17 @@ define scaleio::sds (
           paired_ref      => 'storage_pool_name',
           paired_hash     => $devices_with_pools,
           unless_query    => "query_sds --sds_name ${name} | grep",
-          require         => Cmd[$sds_resource_title] }
+          require         => Scaleio::Cmd[$sds_resource_title] }
       }
       elsif $ensure_properties == 'absent' {
         $device_del_resources = suffix($device_array, ",${name}5")
-        cmd {$device_del_resources:
+        scaleio::cmd {$device_del_resources:
           action          => 'remove_sds_device',
           ref             => 'device_path',
           value_in_title  => true,
           scope_entity    => 'sds',
           scope_value     => $name,
-          require         => Cmd[$sds_resource_title] }
+          require         => Scaleio::Cmd[$sds_resource_title] }
       }
     }
 
@@ -119,7 +119,7 @@ define scaleio::sds (
     exec { "Apply high_performance profile for ${sds_resource_title}":
       command   => "scli ${mdm_opts} --set_performance_parameters --sds_name ${name} --apply_to_mdm --profile ${performance_profile}",
       path      => '/bin:/usr/bin',
-      require   => Cmd[$sds_resource_title]
+      require   => Scaleio::Cmd[$sds_resource_title]
     }
   }
 
